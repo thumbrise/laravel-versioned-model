@@ -1,0 +1,15 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - src/
+        - database/
+        - tests/
+    
+    # Level 9 for high quality package code
+    level: 9
+
+    ignoreErrors:
+        # Allow dynamic properties on Eloquent models (PHPDoc based)
+        - '#Access to an undefined property Illuminate\\Database\\Eloquent\\Model::\$\w+#'

@@ -8,6 +8,7 @@ use Thumbrise\LaravelVersionedModel\Models\ModelVersion;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -21,26 +22,49 @@ trait HasVersions
         return $this->morphMany(ModelVersion::class, 'model')->orderBy('version');
     }
 
-    protected static function bootHasVersions(): void
+    public function latestVersion(): MorphOne
     {
-        static::updated(function (Model $model) {
-            if (! $model->isDirty() || ! static::shouldCreateVersion($model)) {
-                return;
+        return $this->morphOne(ModelVersion::class, 'model')->latestOfMany('version');
+    }
+
+    /**
+     * Update model and create a version snapshot
+     */
+    public function updateVersioned(array $attributes): bool
+    {
+        if (empty($attributes)) {
+            return true;
+        }
+
+        return DB::transaction(function () use ($attributes) {
+            // Fill and save the model
+            $this->fill($attributes);
+            
+            if (! $this->save()) {
+                return false;
             }
 
-            DB::transaction(function () use ($model) {
-                $latestVersion = $model->versions()->max('version') ?? 0;
-                $nextVersion = $latestVersion + 1;
+            // Get next version number
+            $latestVersion = ModelVersion::where('model_type', $this->getMorphClass())
+                ->where('model_id', $this->getKey())
+                ->max('version') ?? 0;
+                
+            $nextVersion = $latestVersion + 1;
 
-                ModelVersion::create([
-                    'model_type'   => $model->getMorphClass(),
-                    'model_id'     => $model->getKey(),
-                    'changer_type' => static::resolveChanger()?->getMorphClass(),
-                    'changer_id'   => static::resolveChanger()?->getKey(),
-                    'version'      => $nextVersion,
-                    'snapshot'     => static::createSnapshot($model),
-                ]);
-            });
+            // Create version snapshot
+            ModelVersion::create([
+                'model_type'   => $this->getMorphClass(),
+                'model_id'     => $this->getKey(),
+                'changer_type' => static::resolveChanger()?->getMorphClass(),
+                'changer_id'   => static::resolveChanger()?->getKey(),
+                'version'      => $nextVersion,
+                'snapshot'     => static::createSnapshot($this),
+            ]);
+            
+            // Clear cached relationships
+            unset($this->relations['versions'], $this->relations['latestVersion']);
+
+            return true;
         });
     }
 
@@ -57,7 +81,7 @@ trait HasVersions
      */
     public function getLatestVersion(): ?ModelVersion
     {
-        return $this->versions()->latest('version')->first();
+        return $this->latestVersion;
     }
 
     /**
@@ -112,19 +136,15 @@ trait HasVersions
             return false;
         }
 
-        return DB::transaction(function () use ($versionModel) {
-            $snapshot = $versionModel->snapshot;
-            
-            foreach ($snapshot as $key => $value) {
-                if (! static::shouldTrackField($key)) {
-                    continue;
-                }
-                
+        $snapshot = $versionModel->snapshot;
+        
+        foreach ($snapshot as $key => $value) {
+            if (static::shouldTrackField($key)) {
                 $this->{$key} = $value;
             }
+        }
 
-            return $this->save();
-        });
+        return $this->updateVersioned($this->getDirty());
     }
 
     /**
@@ -161,22 +181,6 @@ trait HasVersions
         }
 
         return $history;
-    }
-
-    /**
-     * Determine if a version should be created
-     */
-    protected static function shouldCreateVersion(Model $model): bool
-    {
-        $dirty = $model->getDirty();
-        
-        foreach ($dirty as $field => $value) {
-            if (static::shouldTrackField($field)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**

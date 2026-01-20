@@ -18,7 +18,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.1
           extensions: dom, curl, libxml, mbstring, zip
           coverage: none
 
@@ -30,8 +30,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: dependencies-php-8.3-composer-${{ hashFiles('composer.json') }}
-          restore-keys: dependencies-php-8.3-composer-
+          key: dependencies-php-8.1-composer-${{ hashFiles('composer.json') }}
+          restore-keys: dependencies-php-8.1-composer-
 
       - name: Install dependencies
         run: composer update --prefer-stable --prefer-dist --no-interaction --no-progress
@@ -50,7 +50,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.1
           extensions: dom, curl, libxml, mbstring, zip
           coverage: none
 
@@ -62,8 +62,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: dependencies-php-8.3-composer-${{ hashFiles('composer.json') }}
-          restore-keys: dependencies-php-8.3-composer-
+          key: dependencies-php-8.1-composer-${{ hashFiles('composer.json') }}
+          restore-keys: dependencies-php-8.1-composer-
 
       - name: Install dependencies
         run: composer update --prefer-stable --prefer-dist --no-interaction --no-progress
@@ -82,7 +82,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.1
           coverage: none
 
       - name: Validate composer.json
@@ -99,7 +99,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.1
           coverage: none
 
       - name: Install dependencies

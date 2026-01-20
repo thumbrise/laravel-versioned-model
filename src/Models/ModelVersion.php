@@ -10,17 +10,17 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int            $id
- * @property null|Carbon    $created_at
- * @property null|Carbon    $updated_at
- * @property string         $model_type
- * @property int            $model_id
- * @property null|string    $changer_type
- * @property null|int       $changer_id
- * @property int            $version
- * @property array          $snapshot
- * @property Eloquent|Model $model
- * @property Eloquent|Model $changer
+ * @property int                  $id
+ * @property null|Carbon          $created_at
+ * @property null|Carbon          $updated_at
+ * @property string               $model_type
+ * @property int                  $model_id
+ * @property null|string          $changer_type
+ * @property null|int             $changer_id
+ * @property int                  $version
+ * @property array<string, mixed> $snapshot
+ * @property Eloquent|Model       $model
+ * @property Eloquent|Model       $changer
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ModelVersion newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ModelVersion newQuery()
@@ -56,7 +56,7 @@ class ModelVersion extends Model
     ];
 
     /**
-     * @return MorphTo<Model, ModelVersion>
+     * @return MorphTo<Model, self>
      */
     public function model(): MorphTo
     {
@@ -64,7 +64,7 @@ class ModelVersion extends Model
     }
 
     /**
-     * @return MorphTo<Model, ModelVersion>
+     * @return MorphTo<Model, self>
      */
     public function changer(): MorphTo
     {

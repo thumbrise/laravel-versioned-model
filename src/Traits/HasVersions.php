@@ -54,6 +54,7 @@ trait HasVersions
             }
 
             // Get next version number
+            /** @var int $latestVersion */
             $latestVersion = ModelVersion::where('model_type', $this->getMorphClass())
                 ->where('model_id', $this->getKey())
                 ->max('version') ?? 0
@@ -62,11 +63,12 @@ trait HasVersions
             $nextVersion = $latestVersion + 1;
 
             // Create version snapshot
+            $changer = static::resolveChanger();
             ModelVersion::create([
                 'model_type'   => $this->getMorphClass(),
                 'model_id'     => $this->getKey(),
-                'changer_type' => static::resolveChanger()?->getMorphClass(),
-                'changer_id'   => static::resolveChanger()?->getKey(),
+                'changer_type' => $changer?->getMorphClass(),
+                'changer_id'   => $changer?->getKey(),
                 'version'      => $nextVersion,
                 'snapshot'     => static::createSnapshot($this),
             ]);

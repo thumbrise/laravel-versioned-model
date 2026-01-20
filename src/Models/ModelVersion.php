@@ -56,7 +56,7 @@ class ModelVersion extends Model
     ];
 
     /**
-     * @return MorphTo<Model, self>
+     * @return MorphTo<Model, ModelVersion>
      */
     public function model(): MorphTo
     {
@@ -64,7 +64,7 @@ class ModelVersion extends Model
     }
 
     /**
-     * @return MorphTo<Model, self>
+     * @return MorphTo<Model, ModelVersion>
      */
     public function changer(): MorphTo
     {

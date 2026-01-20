@@ -115,13 +115,19 @@ trait HasVersions
      */
     public function getDiff(?int $fromVersion = null, ?int $toVersion = null): array
     {
-        $fromSnapshot = $fromVersion
-            ? $this->getVersion($fromVersion)?->snapshot ?? []
-            : [];
+        if ($fromVersion) {
+            $fromVersionModel = $this->getVersion($fromVersion);
+            $fromSnapshot     = $fromVersionModel ? $fromVersionModel->snapshot : [];
+        } else {
+            $fromSnapshot = [];
+        }
 
-        $toSnapshot = $toVersion
-            ? $this->getVersion($toVersion)?->snapshot ?? []
-            : static::createSnapshot($this);
+        if ($toVersion) {
+            $toVersionModel = $this->getVersion($toVersion);
+            $toSnapshot     = $toVersionModel ? $toVersionModel->snapshot : [];
+        } else {
+            $toSnapshot = static::createSnapshot($this);
+        }
 
         $diff    = [];
         $allKeys = array_unique(array_merge(array_keys($fromSnapshot), array_keys($toSnapshot)));

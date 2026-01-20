@@ -52,14 +52,20 @@ class ModelVersion extends Model
 
     protected $casts = [
         'snapshot' => 'array',
-        'version' => 'integer',
+        'version'  => 'integer',
     ];
 
+    /**
+     * @return MorphTo<Model, ModelVersion>
+     */
     public function model(): MorphTo
     {
         return $this->morphTo();
     }
 
+    /**
+     * @return MorphTo<Model, ModelVersion>
+     */
     public function changer(): MorphTo
     {
         return $this->morphTo();

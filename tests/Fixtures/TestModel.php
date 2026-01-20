@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace Thumbrise\LaravelVersionedModel\Tests\Fixtures;
 
-use Thumbrise\LaravelVersionedModel\Traits\HasVersions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Thumbrise\LaravelVersionedModel\Traits\HasVersions;
 
+/**
+ * @property int         $id
+ * @property string      $name
+ * @property null|string $email
+ * @property null|string $status
+ * @property int         $count
+ */
 class TestModel extends Model
 {
     use HasVersions;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Thumbrise\LaravelVersionedModel\Tests;
 
-use Thumbrise\LaravelVersionedModel\LaravelVersionedModelServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Thumbrise\LaravelVersionedModel\LaravelVersionedModelServiceProvider;
 
 abstract class TestCase extends Orchestra
 {

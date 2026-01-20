@@ -50,7 +50,7 @@
       "@composer audit"
     ],
     "test": [
-      "./vendor/bin/pest --testsuite Unit,Feature --coverage --parallel --fail-on-risky --fail-on-warning"
+      "./vendor/bin/phpunit --testsuite Unit,Feature --fail-on-risky --fail-on-warning"
     ]
   },
   "extra": {

@@ -37,12 +37,6 @@ jobs:
             @semantic-release/github \
             conventional-changelog-conventionalcommits
 
-      - name: Install local dependencies
-        run: npm install
-
-      - name: Verify the integrity of provenance attestations
-        run: npm audit signatures
-
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

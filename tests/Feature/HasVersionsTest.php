@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Thumbrise\LaravelVersionedModel\Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Thumbrise\LaravelVersionedModel\Models\ModelVersion;
 use Thumbrise\LaravelVersionedModel\Tests\Fixtures\TestModel;
 use Thumbrise\LaravelVersionedModel\Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
+/**
+ * @internal
+ */
 class HasVersionsTest extends TestCase
 {
     use RefreshDatabase;
@@ -15,7 +19,7 @@ class HasVersionsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->defineDatabaseMigrations();
         TestModel::createTable();
     }
@@ -23,11 +27,11 @@ class HasVersionsTest extends TestCase
     protected function tearDown(): void
     {
         TestModel::dropTable();
-        
+
         parent::tearDown();
     }
 
-    public function test_it_creates_version_on_model_update(): void
+    public function testItCreatesVersionOnModelUpdate(): void
     {
         $model = TestModel::create([
             'name'  => 'John Doe',
@@ -46,7 +50,7 @@ class HasVersionsTest extends TestCase
         ]);
     }
 
-    public function test_it_increments_version_number(): void
+    public function testItIncrementsVersionNumber(): void
     {
         $model = TestModel::create(['name' => 'John']);
 
@@ -55,13 +59,15 @@ class HasVersionsTest extends TestCase
         $model->updateVersioned(['name' => 'Jim']);
 
         $this->assertDatabaseCount('model_versions', 3);
-        
+
         // Use fresh query, not cached relationship
-        $this->assertEquals(3, \Thumbrise\LaravelVersionedModel\Models\ModelVersion::where('model_id', $model->id)->count());
-        $this->assertEquals(3, $model->getLatestVersion()->version);
+        $this->assertEquals(3, ModelVersion::where('model_id', $model->id)->count());
+        $latestVersion = $model->getLatestVersion();
+        $this->assertNotNull($latestVersion);
+        $this->assertEquals(3, $latestVersion->version);
     }
 
-    public function test_it_stores_full_snapshot(): void
+    public function testItStoresFullSnapshot(): void
     {
         $model = TestModel::create([
             'name'   => 'John',
@@ -73,7 +79,7 @@ class HasVersionsTest extends TestCase
         $model->updateVersioned(['name' => 'Jane']);
 
         $version = $model->getVersion(1);
-        
+
         $this->assertNotNull($version);
         $this->assertEquals('Jane', $version->snapshot['name']);
         $this->assertEquals('john@example.com', $version->snapshot['email']);
@@ -81,17 +87,17 @@ class HasVersionsTest extends TestCase
         $this->assertEquals(5, $version->snapshot['count']);
     }
 
-    public function test_it_does_not_create_version_when_only_timestamps_change(): void
+    public function testItDoesNotCreateVersionWhenOnlyTimestampsChange(): void
     {
         $model = TestModel::create(['name' => 'John']);
-        
+
         // Touch updates only timestamps
         $model->touch();
 
         $this->assertDatabaseCount('model_versions', 0);
     }
 
-    public function test_get_version_returns_specific_version(): void
+    public function testGetVersionReturnsSpecificVersion(): void
     {
         $model = TestModel::create(['name' => 'v0']);
 
@@ -100,13 +106,13 @@ class HasVersionsTest extends TestCase
         $model->updateVersioned(['name' => 'v3']);
 
         $version2 = $model->getVersion(2);
-        
+
         $this->assertNotNull($version2);
         $this->assertEquals(2, $version2->version);
         $this->assertEquals('v2', $version2->snapshot['name']);
     }
 
-    public function test_get_latest_version_returns_latest(): void
+    public function testGetLatestVersionReturnsLatest(): void
     {
         $model = TestModel::create(['name' => 'v0']);
 
@@ -114,13 +120,13 @@ class HasVersionsTest extends TestCase
         $model->updateVersioned(['name' => 'v2']);
 
         $latest = $model->getLatestVersion();
-        
+
         $this->assertNotNull($latest);
         $this->assertEquals(2, $latest->version);
         $this->assertEquals('v2', $latest->snapshot['name']);
     }
 
-    public function test_get_diff_between_versions(): void
+    public function testGetDiffBetweenVersions(): void
     {
         $model = TestModel::create([
             'name'   => 'John',
@@ -140,10 +146,10 @@ class HasVersionsTest extends TestCase
         $this->assertArrayNotHasKey('email', $diff);
     }
 
-    public function test_get_diff_from_null_uses_empty_state(): void
+    public function testGetDiffFromNullUsesEmptyState(): void
     {
         $model = TestModel::create(['name' => 'John', 'email' => 'john@example.com']);
-        
+
         $model->updateVersioned(['name' => 'Jane']);
 
         $diff = $model->getDiff(null, 1);
@@ -153,10 +159,10 @@ class HasVersionsTest extends TestCase
         $this->assertEquals('Jane', $diff['name']['new']);
     }
 
-    public function test_revert_to_version(): void
+    public function testRevertToVersion(): void
     {
         $model = TestModel::create(['name' => 'v0', 'email' => 'v0@example.com']);
-        
+
         $model->updateVersioned(['name' => 'v1', 'email' => 'v1@example.com']);
         $model->updateVersioned(['name' => 'v2', 'email' => 'v2@example.com']);
 
@@ -167,15 +173,15 @@ class HasVersionsTest extends TestCase
 
         $this->assertTrue($result);
         $model->refresh();
-        
+
         $this->assertEquals('v1', $model->name);
         $this->assertEquals('v1@example.com', $model->email);
     }
 
-    public function test_revert_to_non_existent_version_returns_false(): void
+    public function testRevertToNonExistentVersionReturnsFalse(): void
     {
         $model = TestModel::create(['name' => 'John']);
-        
+
         $model->updateVersioned(['name' => 'Jane']);
 
         $result = $model->revertToVersion(999);
@@ -183,7 +189,7 @@ class HasVersionsTest extends TestCase
         $this->assertFalse($result);
     }
 
-    public function test_get_field_history(): void
+    public function testGetFieldHistory(): void
     {
         $model = TestModel::create(['name' => 'v0']);
 
@@ -199,7 +205,7 @@ class HasVersionsTest extends TestCase
         $this->assertEquals('v3', $history[2]['value']);
     }
 
-    public function test_get_fields_history(): void
+    public function testGetFieldsHistory(): void
     {
         $model = TestModel::create(['name' => 'John', 'email' => 'john@example.com']);
 
@@ -214,7 +220,7 @@ class HasVersionsTest extends TestCase
         $this->assertCount(2, $history['email']);
     }
 
-    public function test_versions_relation(): void
+    public function testVersionsRelation(): void
     {
         $model = TestModel::create(['name' => 'John']);
 
@@ -224,6 +230,8 @@ class HasVersionsTest extends TestCase
         $versions = $model->versions;
 
         $this->assertCount(2, $versions);
+        $this->assertNotNull($versions[0]);
+        $this->assertNotNull($versions[1]);
         $this->assertEquals(1, $versions[0]->version);
         $this->assertEquals(2, $versions[1]->version);
     }

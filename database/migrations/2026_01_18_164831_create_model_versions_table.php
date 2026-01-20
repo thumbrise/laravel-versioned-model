@@ -17,9 +17,9 @@ return new class extends Migration {
             $table->morphs('model');
             $table->nullableMorphs('changer');
             $table->unsignedInteger('version');
-            
+
             // Use jsonb for PostgreSQL, json for others
-            if (config('database.default') === 'pgsql') {
+            if ('pgsql' === config('database.default')) {
                 $table->jsonb('snapshot');
             } else {
                 $table->json('snapshot');
